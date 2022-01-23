@@ -23,7 +23,7 @@ DFRobot_SHT20    sht20;
 
 const u_int8_t BLUE_LED = PIN_LED1;
 const u_int8_t PIN_BUTTON = PIN_BUTTON1;
-const u_int8_t PIN_OneWire = 11;
+// const u_int8_t PIN_OneWire = 11;
 
 #define onewire
 
@@ -80,6 +80,8 @@ void happyPresentation() {
     happySendSketchInfo("HappyNode nRF52811 test", "V1.0");
     happyPresent(CHILD_ID_TEMP, S_TEMP, "Temperature");
     happyPresent(CHILD_ID_HUM, S_HUM, "Humidity");
+    happyPresent(CHILD_ID_OneWire, S_TEMP, "TempOneWire");
+   // happyPresent(MY_SEND_RSSI, S_CUSTOM, "LINK_QUALITY");
 }
 
 void loop() {
