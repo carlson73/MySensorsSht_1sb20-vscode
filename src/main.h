@@ -10,7 +10,7 @@
 
 int16_t myTransportComlpeteMS = 10000;
 #define MY_TRANSPORT_WAIT_READY_MS (myTransportComlpeteMS)
-//#define SERIAL_PRINT  // включение серийного порта
+#define SERIAL_PRINT  // включение серийного порта
 
 
 #define CHILD_ID_TEMP 0
@@ -42,3 +42,7 @@ void blink (uint8_t flash);
 void SHT_send();
 void OneWire_read();
 void OneWire_send();
+void nRF_Init();
+void disableNfc();
+void turnOffAdc();  
+

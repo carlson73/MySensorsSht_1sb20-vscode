@@ -47,11 +47,10 @@ void preHwInit() {
 }
 
 void before() {
-NRF_POWER->DCDCEN = 1; //включение режима оптимизации питания, расход снижается на 40%, но должны быть установленны емкости (если нода сделана на модуле https://a.aliexpress.com/_mKN3t2f то нужно раскомментировать эту строку)
-//NRF_NFCT->TASKS_DISABLE = 1; //останавливает таски, если они есть
-NRF_NVMC->CONFIG = 1; //разрешить запись
-//NRF_UICR->NFCPINS = 0; //отключает nfc и nfc пины становятся доступными для использования
-NRF_NVMC->CONFIG = 0; //запретить запись
+nRF_Init();
+disableNfc();
+turnOffAdc();       
+wait(200);
 #ifdef SERIAL_PRINT
     NRF_UART0->ENABLE = 1;  
 #else
@@ -69,15 +68,28 @@ void setup() {
     SHT_read();
 
     #ifdef onewire
-    sensors.begin();
-    if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
-    sensors.setResolution(insideThermometer, 9);
+     Serial.print("Locating devices...");
+     sensors.begin();
+     Serial.print("Found ");
+     Serial.print(sensors.getDeviceCount(), DEC);
+     Serial.println(" devices.");
+     if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
+    
+     sensors.setResolution(insideThermometer, 9);
+     Serial.print("Device 0 Resolution: ");
+     Serial.print(sensors.getResolution(insideThermometer), DEC); 
+     Serial.println();
     #endif
+
+    // report parasite power requirements
+    // Serial.print("Parasite power is: "); 
+    // if (sensors.isParasitePowerMode()) Serial.println("ON");
+    // else Serial.println("OFF");
         
 }
 
 void happyPresentation() {
-    happySendSketchInfo("HappyNode nRF52811 test", "V1.0");
+    happySendSketchInfo("HappyNode nRF52832 SHT&1Wire", "V1.0");
     happyPresent(CHILD_ID_TEMP, S_TEMP, "Temperature");
     happyPresent(CHILD_ID_HUM, S_HUM, "Humidity");
     happyPresent(CHILD_ID_OneWire, S_TEMP, "TempOneWire");
@@ -183,4 +195,29 @@ void OneWire_send() {
       blink(1);
     }
 
+}
+
+void nRF_Init() {
+  NRF_POWER->DCDCEN = 1; // /включение режима оптимизации питания, расход снижается на 40%, но должны быть установленны емкости 
+  NRF_PWM0  ->ENABLE = 0;
+  NRF_PWM1  ->ENABLE = 0;
+  NRF_PWM2  ->ENABLE = 0;
+  NRF_TWIM1 ->ENABLE = 0;
+  NRF_TWIS1 ->ENABLE = 0;
+}
+
+void disableNfc() {
+  NRF_NFCT->TASKS_DISABLE = 1;  //останавливает таски, если они есть
+  NRF_NVMC->CONFIG = 1;         //разрешить запись
+  NRF_UICR->NFCPINS = 0;        //отключает nfc и nfc пины становятся доступными для использования
+  NRF_NVMC->CONFIG = 0;         //запретить запись
+}
+
+void turnOffAdc() {
+  if (NRF_SAADC->ENABLE) {
+    NRF_SAADC->TASKS_STOP = 1;
+    while (NRF_SAADC->EVENTS_STOPPED) {}
+    NRF_SAADC->ENABLE = 0;
+    while (NRF_SAADC->ENABLE) {}
+  }
 }
